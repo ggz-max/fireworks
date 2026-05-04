@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>夜雨</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #000; overflow: hidden; width: 100vw; height: 100vh; }
+canvas { display: block; }
+#hint {
+  position: fixed;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(100, 180, 255, 0.35);
+  font-size: 13px;
+  font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  letter-spacing: 2px;
+  pointer-events: none;
+  transition: opacity 1.5s ease;
+}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="hint">点击任意位置放烟花</div>
+<script src="main.js"></script>
+</body>
+</html>
