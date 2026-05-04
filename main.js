@@ -191,10 +191,10 @@ function drawBackground() {
   }
 
   const waves = [
-    { yBase:0.68, amp1:3,  amp2:2,  freq1:0.018, freq2:0.031, spd1:0.8,  spd2:1.3,  fill:'rgba(15,55,110,0.55)',  foam:'rgba(100,170,255,0.5)', fw:1.2 },
-    { yBase:0.75, amp1:4,  amp2:2,  freq1:0.015, freq2:0.027, spd1:0.65, spd2:1.0,  fill:'rgba(10,42,90,0.65)',   foam:'rgba(120,185,255,0.55)', fw:1.5 },
-    { yBase:0.83, amp1:5,  amp2:3,  freq1:0.012, freq2:0.023, spd1:0.5,  spd2:0.85, fill:'rgba(7,32,72,0.75)',    foam:'rgba(140,200,255,0.6)',  fw:1.8 },
-    { yBase:0.91, amp1:6,  amp2:3,  freq1:0.010, freq2:0.019, spd1:0.38, spd2:0.7,  fill:'rgba(5,24,55,0.88)',    foam:'rgba(180,220,255,0.7)',  fw:2.2 },
+    { yBase:0.82, amp1:3, amp2:2, freq1:0.018, freq2:0.031, spd1:0.8,  spd2:1.3,  fill:'rgba(15,55,110,0.55)',  foam:'rgba(100,170,255,0.5)', fw:1.2 },
+    { yBase:0.87, amp1:4, amp2:2, freq1:0.015, freq2:0.027, spd1:0.65, spd2:1.0,  fill:'rgba(10,42,90,0.65)',   foam:'rgba(120,185,255,0.55)', fw:1.5 },
+    { yBase:0.91, amp1:4, amp2:2, freq1:0.012, freq2:0.023, spd1:0.5,  spd2:0.85, fill:'rgba(7,32,72,0.75)',    foam:'rgba(140,200,255,0.6)',  fw:1.8 },
+    { yBase:0.95, amp1:3, amp2:2, freq1:0.010, freq2:0.019, spd1:0.38, spd2:0.7,  fill:'rgba(5,24,55,0.88)',    foam:'rgba(180,220,255,0.7)',  fw:2.2 },
   ];
 
   for (const w of waves) {
@@ -497,12 +497,12 @@ function loop() {
   ctx.moveTo(0, H);
 
   const shorePts = [];
-  const shoreBase = H * 0.78;
+  const shoreBase = H * 0.76;
   for (let x = 0; x <= W; x += 60) {
     const y = shoreBase
-      - 35 * Math.sin(x * 0.003 + 1.2)
-      - 20 * Math.sin(x * 0.007 - 0.8)
-      - 12 * Math.sin(x * 0.012 + 2.1);
+      - 18 * Math.sin(x * 0.004 + 1.2)
+      - 10 * Math.sin(x * 0.009 - 0.8)
+      - 6  * Math.sin(x * 0.015 + 2.1);
     shorePts.push([x, y]);
   }
 
