@@ -139,54 +139,98 @@ function startMusic() {
 
 
 
-// ── Mountain silhouette ────────────────────────────────────
-let mountainPath = null;
-
-function buildMountains() {
-  mountainPath = new Path2D();
-  const baseY = H * 0.78;
-  mountainPath.moveTo(0, H);
-
-  // far mountains (lighter, smaller)
-  const farPeaks = [
-    [0.05,0.62],[0.15,0.48],[0.28,0.55],[0.38,0.44],[0.5,0.52],
-    [0.62,0.46],[0.72,0.54],[0.83,0.47],[0.93,0.56],[1.0,0.62],
-  ];
-  for (const [rx, ry] of farPeaks) {
-    mountainPath.lineTo(rx * W, ry * H);
-  }
-  mountainPath.lineTo(W, H);
-  mountainPath.closePath();
-}
+// ── Waves ──────────────────────────────────────────────────
+let waveTime = 0;
 
 function drawBackground() {
-  // sky gradient
+  waveTime += 0.008;
+
+  // sky gradient — deep navy to near-black
   const sky = ctx.createLinearGradient(0, 0, 0, H);
-  sky.addColorStop(0, '#020412');
-  sky.addColorStop(0.6, '#0a0e2a');
-  sky.addColorStop(1, '#0d1535');
+  sky.addColorStop(0, '#010208');
+  sky.addColorStop(0.45, '#050d1f');
+  sky.addColorStop(0.72, '#071428');
+  sky.addColorStop(1, '#020810');
   ctx.fillStyle = sky;
   ctx.fillRect(0, 0, W, H);
 
-  if (!mountainPath) buildMountains();
+  // milky way band — diagonal glow
+  const mw = ctx.createLinearGradient(W * 0.2, 0, W * 0.65, H * 0.7);
+  mw.addColorStop(0, 'rgba(80,100,180,0)');
+  mw.addColorStop(0.3, 'rgba(100,120,200,0.07)');
+  mw.addColorStop(0.5, 'rgba(140,160,220,0.11)');
+  mw.addColorStop(0.7, 'rgba(100,120,200,0.07)');
+  mw.addColorStop(1, 'rgba(80,100,180,0)');
+  ctx.fillStyle = mw;
+  ctx.fillRect(0, 0, W, H);
 
-  // far mountains
+  const shore = H * 0.68;
+
+  // ocean base
+  const sea = ctx.createLinearGradient(0, shore, 0, H);
+  sea.addColorStop(0, '#071830');
+  sea.addColorStop(0.5, '#050f20');
+  sea.addColorStop(1, '#020810');
+  ctx.fillStyle = sea;
+  ctx.fillRect(0, shore, W, H - shore);
+
+  // distant shore silhouette
   ctx.save();
-  ctx.fillStyle = '#060c1e';
-  ctx.fill(mountainPath);
-
-  // near mountains (darker, taller)
   ctx.beginPath();
-  ctx.moveTo(0, H);
-  const nearPeaks = [
-    [0,0.82],[0.08,0.7],[0.18,0.76],[0.3,0.65],[0.42,0.72],
-    [0.55,0.63],[0.65,0.7],[0.76,0.66],[0.88,0.73],[1.0,0.78],[1.0,1],
-  ];
-  for (const [rx, ry] of nearPeaks) ctx.lineTo(rx * W, ry * H);
-  ctx.closePath();
-  ctx.fillStyle = '#03060f';
+  ctx.moveTo(0, shore);
+  for (let x = 0; x <= W; x += 4) {
+    const y = shore - 18 * Math.sin(x * 0.004 + waveTime * 0.3)
+                     - 8  * Math.sin(x * 0.009 - waveTime * 0.5);
+    ctx.lineTo(x, y);
+  }
+  ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.closePath();
+  ctx.fillStyle = '#03080f';
   ctx.fill();
   ctx.restore();
+
+  // wave layers
+  const waves = [
+    { yBase: 0.74, amp1: 10, amp2: 5,  spd1: 0.9,  spd2: 1.4,  freq1: 0.006, freq2: 0.013, color: 'rgba(20,60,120,0.5)',   foam: 'rgba(80,140,220,0.18)' },
+    { yBase: 0.80, amp1: 14, amp2: 6,  spd1: 0.7,  spd2: 1.1,  freq1: 0.005, freq2: 0.011, color: 'rgba(15,45,100,0.6)',   foam: 'rgba(100,160,240,0.22)' },
+    { yBase: 0.87, amp1: 18, amp2: 8,  spd1: 0.55, spd2: 0.9,  freq1: 0.004, freq2: 0.009, color: 'rgba(10,35,80,0.7)',    foam: 'rgba(120,180,255,0.28)' },
+    { yBase: 0.93, amp1: 22, amp2: 10, spd1: 0.4,  spd2: 0.75, freq1: 0.003, freq2: 0.007, color: 'rgba(8,28,65,0.85)',    foam: 'rgba(150,200,255,0.35)' },
+  ];
+
+  for (const w of waves) {
+    const baseY = H * w.yBase;
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(0, H);
+    const pts = [];
+    for (let x = 0; x <= W; x += 3) {
+      const y = baseY
+        + w.amp1 * Math.sin(x * w.freq1 + waveTime * w.spd1)
+        + w.amp2 * Math.sin(x * w.freq2 - waveTime * w.spd2);
+      pts.push([x, y]);
+      ctx.lineTo(x, y);
+    }
+    ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.closePath();
+    ctx.fillStyle = w.color;
+    ctx.fill();
+
+    // foam crest
+    ctx.beginPath();
+    for (let i = 0; i < pts.length; i++) {
+      const [x, y] = pts[i];
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = w.foam;
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // moonlight reflection on water
+  const refl = ctx.createRadialGradient(W * 0.5, shore, 0, W * 0.5, H * 0.85, W * 0.35);
+  refl.addColorStop(0, 'rgba(180,210,255,0.08)');
+  refl.addColorStop(1, 'rgba(180,210,255,0)');
+  ctx.fillStyle = refl;
+  ctx.fillRect(0, shore, W, H - shore);
 }
 
 // ── Stars ──────────────────────────────────────────────────
@@ -205,7 +249,7 @@ function initStars() {
   }
 }
 initStars();
-window.addEventListener('resize', () => { resize(); initStars(); mountainPath = null; });
+window.addEventListener('resize', () => { resize(); initStars(); });
 function drawStars() {
   ctx.save();
   for (const s of stars) {
