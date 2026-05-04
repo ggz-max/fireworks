@@ -164,73 +164,67 @@ function drawBackground() {
   ctx.fillStyle = mw;
   ctx.fillRect(0, 0, W, H);
 
-  const shore = H * 0.68;
+  const shore = H * 0.65;
 
-  // ocean base
+  // ocean base — brighter blue
   const sea = ctx.createLinearGradient(0, shore, 0, H);
-  sea.addColorStop(0, '#071830');
-  sea.addColorStop(0.5, '#050f20');
-  sea.addColorStop(1, '#020810');
+  sea.addColorStop(0,   '#0a2a50');
+  sea.addColorStop(0.4, '#071e3d');
+  sea.addColorStop(1,   '#030d1e');
   ctx.fillStyle = sea;
   ctx.fillRect(0, shore, W, H - shore);
 
-  // distant shore silhouette
-  ctx.save();
-  ctx.beginPath();
-  ctx.moveTo(0, shore);
-  for (let x = 0; x <= W; x += 4) {
-    const y = shore - 18 * Math.sin(x * 0.004 + waveTime * 0.3)
-                     - 8  * Math.sin(x * 0.009 - waveTime * 0.5);
-    ctx.lineTo(x, y);
-  }
-  ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.closePath();
-  ctx.fillStyle = '#03080f';
-  ctx.fill();
-  ctx.restore();
+  // moonlight column reflection
+  const refl = ctx.createLinearGradient(W*0.4, shore, W*0.6, H);
+  refl.addColorStop(0, 'rgba(160,200,255,0.12)');
+  refl.addColorStop(1, 'rgba(160,200,255,0)');
+  ctx.fillStyle = refl;
+  ctx.fillRect(W*0.3, shore, W*0.4, H - shore);
 
-  // wave layers
+  // smooth wave helper using bezier curves
+  function smoothWave(baseY, amp1, amp2, freq1, freq2, spd1, spd2) {
+    const pts = [];
+    const step = 40;
+    for (let x = -step; x <= W + step; x += step) {
+      pts.push([x, baseY
+        + amp1 * Math.sin(x * freq1 + waveTime * spd1)
+        + amp2 * Math.sin(x * freq2 - waveTime * spd2)]);
+    }
+    ctx.moveTo(pts[0][0], pts[0][1]);
+    for (let i = 1; i < pts.length - 1; i++) {
+      const mx = (pts[i][0] + pts[i+1][0]) / 2;
+      const my = (pts[i][1] + pts[i+1][1]) / 2;
+      ctx.quadraticCurveTo(pts[i][0], pts[i][1], mx, my);
+    }
+    return pts;
+  }
+
   const waves = [
-    { yBase: 0.74, amp1: 10, amp2: 5,  spd1: 0.9,  spd2: 1.4,  freq1: 0.006, freq2: 0.013, color: 'rgba(20,60,120,0.5)',   foam: 'rgba(80,140,220,0.18)' },
-    { yBase: 0.80, amp1: 14, amp2: 6,  spd1: 0.7,  spd2: 1.1,  freq1: 0.005, freq2: 0.011, color: 'rgba(15,45,100,0.6)',   foam: 'rgba(100,160,240,0.22)' },
-    { yBase: 0.87, amp1: 18, amp2: 8,  spd1: 0.55, spd2: 0.9,  freq1: 0.004, freq2: 0.009, color: 'rgba(10,35,80,0.7)',    foam: 'rgba(120,180,255,0.28)' },
-    { yBase: 0.93, amp1: 22, amp2: 10, spd1: 0.4,  spd2: 0.75, freq1: 0.003, freq2: 0.007, color: 'rgba(8,28,65,0.85)',    foam: 'rgba(150,200,255,0.35)' },
+    { yBase:0.68, amp1:8,  amp2:4,  freq1:0.007, freq2:0.015, spd1:0.8,  spd2:1.3,  fill:'rgba(15,55,110,0.55)',  foam:'rgba(100,170,255,0.5)', fw:1.2 },
+    { yBase:0.75, amp1:12, amp2:5,  freq1:0.005, freq2:0.012, spd1:0.65, spd2:1.0,  fill:'rgba(10,42,90,0.65)',   foam:'rgba(120,185,255,0.55)', fw:1.5 },
+    { yBase:0.83, amp1:16, amp2:7,  freq1:0.004, freq2:0.010, spd1:0.5,  spd2:0.85, fill:'rgba(7,32,72,0.75)',    foam:'rgba(140,200,255,0.6)',  fw:1.8 },
+    { yBase:0.91, amp1:20, amp2:9,  freq1:0.003, freq2:0.008, spd1:0.38, spd2:0.7,  fill:'rgba(5,24,55,0.88)',    foam:'rgba(180,220,255,0.7)',  fw:2.2 },
   ];
 
   for (const w of waves) {
     const baseY = H * w.yBase;
     ctx.save();
     ctx.beginPath();
-    ctx.moveTo(0, H);
-    const pts = [];
-    for (let x = 0; x <= W; x += 3) {
-      const y = baseY
-        + w.amp1 * Math.sin(x * w.freq1 + waveTime * w.spd1)
-        + w.amp2 * Math.sin(x * w.freq2 - waveTime * w.spd2);
-      pts.push([x, y]);
-      ctx.lineTo(x, y);
-    }
-    ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.closePath();
-    ctx.fillStyle = w.color;
+    ctx.lineTo(0, H);
+    smoothWave(baseY, w.amp1, w.amp2, w.freq1, w.freq2, w.spd1, w.spd2);
+    ctx.lineTo(W, H);
+    ctx.closePath();
+    ctx.fillStyle = w.fill;
     ctx.fill();
 
     // foam crest
     ctx.beginPath();
-    for (let i = 0; i < pts.length; i++) {
-      const [x, y] = pts[i];
-      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-    }
-    ctx.lineWidth = 1.5;
+    smoothWave(baseY, w.amp1, w.amp2, w.freq1, w.freq2, w.spd1, w.spd2);
+    ctx.lineWidth = w.fw;
     ctx.strokeStyle = w.foam;
     ctx.stroke();
     ctx.restore();
   }
-
-  // moonlight reflection on water
-  const refl = ctx.createRadialGradient(W * 0.5, shore, 0, W * 0.5, H * 0.85, W * 0.35);
-  refl.addColorStop(0, 'rgba(180,210,255,0.08)');
-  refl.addColorStop(1, 'rgba(180,210,255,0)');
-  ctx.fillStyle = refl;
-  ctx.fillRect(0, shore, W, H - shore);
 }
 
 // ── Stars ──────────────────────────────────────────────────
