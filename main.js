@@ -181,22 +181,13 @@ function drawBackground() {
   ctx.fillStyle = refl;
   ctx.fillRect(W*0.3, shore, W*0.4, H - shore);
 
-  // smooth wave helper using bezier curves
   function smoothWave(baseY, amp1, amp2, freq1, freq2, spd1, spd2) {
-    const pts = [];
-    const step = 40;
-    for (let x = -step; x <= W + step; x += step) {
-      pts.push([x, baseY
+    ctx.moveTo(0, baseY + amp1 * Math.sin(waveTime * spd1) + amp2 * Math.sin(-waveTime * spd2));
+    for (let x = 1; x <= W; x += 2) {
+      ctx.lineTo(x, baseY
         + amp1 * Math.sin(x * freq1 + waveTime * spd1)
-        + amp2 * Math.sin(x * freq2 - waveTime * spd2)]);
+        + amp2 * Math.sin(x * freq2 - waveTime * spd2));
     }
-    ctx.moveTo(pts[0][0], pts[0][1]);
-    for (let i = 1; i < pts.length - 1; i++) {
-      const mx = (pts[i][0] + pts[i+1][0]) / 2;
-      const my = (pts[i][1] + pts[i+1][1]) / 2;
-      ctx.quadraticCurveTo(pts[i][0], pts[i][1], mx, my);
-    }
-    return pts;
   }
 
   const waves = [
