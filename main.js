@@ -491,10 +491,33 @@ function loop() {
   updateParticles();
   drawParticles();
 
-  // mask bottom so fireworks don't bleed below waterline
+  // smooth shoreline silhouette
   ctx.save();
-  ctx.fillStyle = '#020810';
-  ctx.fillRect(0, H * 0.95, W, H * 0.05);
+  ctx.beginPath();
+  ctx.moveTo(0, H);
+
+  const shorePts = [];
+  const shoreBase = H * 0.78;
+  for (let x = 0; x <= W; x += 60) {
+    const y = shoreBase
+      - 35 * Math.sin(x * 0.003 + 1.2)
+      - 20 * Math.sin(x * 0.007 - 0.8)
+      - 12 * Math.sin(x * 0.012 + 2.1);
+    shorePts.push([x, y]);
+  }
+
+  ctx.moveTo(shorePts[0][0], shorePts[0][1]);
+  for (let i = 1; i < shorePts.length - 1; i++) {
+    const mx = (shorePts[i][0] + shorePts[i+1][0]) / 2;
+    const my = (shorePts[i][1] + shorePts[i+1][1]) / 2;
+    ctx.quadraticCurveTo(shorePts[i][0], shorePts[i][1], mx, my);
+  }
+  ctx.lineTo(W, shorePts[shorePts.length-1][1]);
+  ctx.lineTo(W, H);
+  ctx.lineTo(0, H);
+  ctx.closePath();
+  ctx.fillStyle = '#010408';
+  ctx.fill();
   ctx.restore();
 
   requestAnimationFrame(loop);
