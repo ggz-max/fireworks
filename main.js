@@ -491,18 +491,10 @@ function loop() {
   updateParticles();
   drawParticles();
 
-  // redraw mountains on top so fireworks don't bleed below horizon
+  // mask bottom so fireworks don't bleed below waterline
   ctx.save();
-  ctx.beginPath();
-  const nearPeaks = [
-    [0,0.82],[0.08,0.7],[0.18,0.76],[0.3,0.65],[0.42,0.72],
-    [0.55,0.63],[0.65,0.7],[0.76,0.66],[0.88,0.73],[1.0,0.78],[1.0,1],[0,1],
-  ];
-  ctx.moveTo(0, H);
-  for (const [rx, ry] of nearPeaks) ctx.lineTo(rx * W, ry * H);
-  ctx.closePath();
-  ctx.fillStyle = '#03060f';
-  ctx.fill();
+  ctx.fillStyle = '#020810';
+  ctx.fillRect(0, H * 0.95, W, H * 0.05);
   ctx.restore();
 
   requestAnimationFrame(loop);
